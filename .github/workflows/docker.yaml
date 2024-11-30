@@ -1,0 +1,48 @@
+name: Build & publish docker images
+on:
+  push:
+    tags:        
+      - '*'
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: ./auth/Dockerfile
+            image: ghcr.io/projet-app-cloud-dev/auth
+          - dockerfile: ./cards/Dockerfile
+            image: ghcr.io/projet-app-cloud-dev/cards
+          - dockerfile: ./collection/Dockerfile
+            image: ghcr.io/projet-app-cloud-dev/collection
+          - dockerfile: ./nginx/Dockerfile
+            image: ghcr.io/projet-app-cloud-dev/proxy
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GH_PACKAGE_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
