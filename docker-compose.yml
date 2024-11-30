@@ -13,7 +13,8 @@ services:
       dockerfile: collection/Dockerfile
   proxy:
     build:
-      context: nginx
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
         - "8080:80"
     depends_on:
