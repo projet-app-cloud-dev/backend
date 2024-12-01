@@ -1,4 +1,4 @@
-package fr.pokecloud.collection
+package fr.pokecloud.auth
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
