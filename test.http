@@ -1,0 +1,15 @@
+POST http://localhost:8080/api/v1/auth/signup
+Content-Type: application/json
+
+{
+  "username": "{{$random.name.firstName}}",
+  "password": "test"
+}
+
+> {%
+    client.global.set("token", response.headers.valueOf("Authorization"))
+    client.test("successful account creation", function () {
+        client.assert(response.status == 200)
+    })
+%}
+

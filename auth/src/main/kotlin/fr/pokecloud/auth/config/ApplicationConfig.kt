@@ -16,6 +16,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.JwtEncoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
@@ -31,7 +33,7 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class ApplicationConfig {
 
     @Bean
     @Throws(Exception::class)
@@ -41,7 +43,8 @@ class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/signup").permitAll().requestMatchers(HttpMethod.GET, "/info/**")
                 .permitAll().requestMatchers(HttpMethod.PUT, "/info").authenticated().requestMatchers("/swagger-ui/**")
                 .permitAll().requestMatchers("/swagger-ui.html").permitAll().requestMatchers("/v3/api-docs*/**")
-                .permitAll().anyRequest().denyAll()
+                .permitAll()
+                .anyRequest().denyAll()
         }.csrf {
             it.disable()
         }.sessionManagement { session ->
@@ -78,15 +81,18 @@ class SecurityConfig {
     @OptIn(ExperimentalEncodingApi::class)
     @Bean
     fun getJwk(environment: Environment): JWK {
-        // TODO: env var
         val key: Key = SecretKeySpec(
             Base64.decode(
                 requireNotNull(environment.getProperty("jwt.key")) {
                     "Missing JWT_KEY environment variable"
-                }
-            ), JWSAlgorithm.HS256.name
+                }), JWSAlgorithm.HS256.name
         )
         val jwk: JWK = OctetSequenceKey.Builder(key.encoded).algorithm(JWSAlgorithm.HS256).build()
         return jwk
+    }
+
+    @Bean
+    fun encoder(): PasswordEncoder {
+        return BCryptPasswordEncoder()
     }
 }
