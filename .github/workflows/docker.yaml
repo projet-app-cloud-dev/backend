@@ -41,6 +41,7 @@ jobs:
         if: steps.check-tag.outputs.match == 'true'
       - name: Log in to the Container registry
         uses: docker/login-action@v3
+        if: steps.check-tag.outputs.match == 'true'
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -48,13 +49,17 @@ jobs:
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
+        if: steps.check-tag.outputs.match == 'true'
         with:
           images: ${{ matrix.image }}
       - name: Build and push Docker images
         uses: docker/build-push-action@v6
+        if: steps.check-tag.outputs.match == 'true'
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ steps.check-tag.outputs.tag }}
+          tags:
+            - ghcr.io/${{ github.repository_owner }}/${{matrix.name}}:${{ steps.check-tag.outputs.tag }}
+            - ghcr.io/${{ github.repository_owner }}/${{matrix.name}}:latest
           labels: ${{ steps.meta.outputs.labels }}
