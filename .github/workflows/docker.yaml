@@ -32,7 +32,7 @@ jobs:
       - name: Check Tag
         id: check-tag
         run: |
-          if [[ ${{ github.event.ref }} =~ ^refs/tags/${{matrix.include.name}}-(.+)$ ]]; then
+          if [[ ${{ github.event.ref }} =~ ^refs/tags/${{matrix.name}}-(.+)$ ]]; then
             echo "tag=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
             echo "match=true" >> $GITHUB_OUTPUT
           fi
