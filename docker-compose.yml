@@ -1,22 +1,44 @@
 services:
+  db:
+    image: postgres:17-alpine
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: postgres
   auth:
     build:
       context: .
       dockerfile: auth/Dockerfile
+    depends_on:
+      - db
+    environment:
+      DB_HOST_PORT: "db:5432"
+      JWT_KEY: "XLMT49MXieG1WnK5fnZ+pk7VbB0IdblQMHnLa6vc6GZJOzr1iQHz9E1BUTuEuMzo"
   cards:
     build:
       context: .
       dockerfile: cards/Dockerfile
+    depends_on:
+      - db
+    environment:
+      DB_HOST_PORT: "db:5432"
+      JWT_KEY: "XLMT49MXieG1WnK5fnZ+pk7VbB0IdblQMHnLa6vc6GZJOzr1iQHz9E1BUTuEuMzo"
   collection:
     build:
       context: .
       dockerfile: collection/Dockerfile
+    depends_on:
+      - db
+    environment:
+      DB_HOST_PORT: "db:5432"
+      JWT_KEY: "XLMT49MXieG1WnK5fnZ+pk7VbB0IdblQMHnLa6vc6GZJOzr1iQHz9E1BUTuEuMzo"
   proxy:
     build:
       context: .
       dockerfile: nginx/Dockerfile
     ports:
-        - "8080:80"
+      - "8080:80"
     depends_on:
       - auth
       - cards
