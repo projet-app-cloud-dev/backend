@@ -14,7 +14,7 @@ services:
       - db
     environment:
       DB_HOST_PORT: "db:5432"
-      JWT_KEY: "XLMT49MXieG1WnK5fnZ+pk7VbB0IdblQMHnLa6vc6GZJOzr1iQHz9E1BUTuEuMzo"
+      JWT_KEY: ${JWT_KEY}
   cards:
     build:
       context: .
@@ -23,7 +23,7 @@ services:
       - db
     environment:
       DB_HOST_PORT: "db:5432"
-      JWT_KEY: "XLMT49MXieG1WnK5fnZ+pk7VbB0IdblQMHnLa6vc6GZJOzr1iQHz9E1BUTuEuMzo"
+      API_KEY: ${API_KEY}
   collection:
     build:
       context: .
@@ -32,7 +32,7 @@ services:
       - db
     environment:
       DB_HOST_PORT: "db:5432"
-      JWT_KEY: "XLMT49MXieG1WnK5fnZ+pk7VbB0IdblQMHnLa6vc6GZJOzr1iQHz9E1BUTuEuMzo"
+      JWT_KEY: ${JWT_KEY}
   proxy:
     build:
       context: .
