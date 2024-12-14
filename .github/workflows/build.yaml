@@ -20,3 +20,44 @@ jobs:
           dependency-graph: generate-and-submit
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: |
+            auth/build/libs/*-boot.jar
+            cards/build/libs/*-boot.jar
+            collection/build/libs/*-boot.jar
+  build-auth:
+    needs: build
+    uses: ./.github/workflows/build-image.yaml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    with:
+      name: auth
+      dockerfile: auth/Dockerfile
+  build-cards:
+    needs: build
+    uses: ./.github/workflows/build-image.yaml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    with:
+      name: cards
+      dockerfile: cards/Dockerfile
+  build-collection:
+    needs: build
+    uses: ./.github/workflows/build-image.yaml
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    with:
+      name: collection
+      dockerfile: collection/Dockerfile
