@@ -2,7 +2,7 @@ package fr.pokecloud.collection.model
 
 data class Collection(
     val id: Long,
-    val userId: Long, val name: String, val cards: List<Card>
+    val userId: Long, val name: String, val cards: List<CardCount>
 )
 
 data class CollectionList(

@@ -1,6 +1,12 @@
 package fr.pokecloud.collection.database.entities
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.IdClass
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.ManyToOne
+import java.io.Serializable
 
 @Entity
 data class Card(
@@ -9,14 +15,12 @@ data class Card(
     @ManyToMany private val collections: List<CardCollection>
 )
 
-@Entity
-data class CardCollection(
-    @ManyToOne
-    @Id
-    val card: Card,
-    @ManyToOne
-    @Id
-    val collection: Collection,
-    @Column(nullable = false) val count: Long
+data class CardCollectionId(
+    val card: Card, val collection: Collection
+) : Serializable
 
+@Entity
+@IdClass(CardCollectionId::class)
+data class CardCollection(
+    @ManyToOne @Id val card: Card, @ManyToOne @Id val collection: Collection, @Column(nullable = false) var count: Long
 )
