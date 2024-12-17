@@ -31,6 +31,7 @@ jobs:
   build-auth:
     needs: build
     uses: ./.github/workflows/build-image.yaml
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
@@ -42,6 +43,7 @@ jobs:
   build-cards:
     needs: build
     uses: ./.github/workflows/build-image.yaml
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
@@ -53,6 +55,7 @@ jobs:
   build-collection:
     needs: build
     uses: ./.github/workflows/build-image.yaml
+    if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: write
