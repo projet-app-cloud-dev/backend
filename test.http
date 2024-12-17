@@ -8,8 +8,51 @@ Content-Type: application/json
 
 > {%
     client.global.set("token", response.headers.valueOf("Authorization"))
-    client.test("successful account creation", function () {
+    client.test("successful collection creation", function () {
         client.assert(response.status == 200)
     })
 %}
 
+
+### Create collection
+POST http://localhost:8080/api/v1/collections/
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "name": "a"
+}
+
+> {%
+    client.global.set("collection_id", response.body.id)
+    client.test("successful account creation", function () {
+        client.assert(response.status == 201)
+    })
+%}
+
+### Get cards
+GET http://localhost:8080/api/v1/cards/?query=eevee
+Content-Type: application/json
+
+> {%
+    client.global.set("card_ids", response.body.map(v => v.id))
+    client.test("successful get cards", function () {
+        client.assert(response.status == 200)
+    })
+%}
+
+### Add cards
+POST http://localhost:8080/api/v1/collections/{{collection_id}}/cards
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "cardId": {{card_ids}},
+  "cardCount": {{$random.number.digit}}
+}
+
+> {%
+    client.test("added  card successfully", function () {
+        client.assert(response.status == 200)
+    })
+%}
