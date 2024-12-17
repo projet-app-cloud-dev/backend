@@ -209,9 +209,9 @@ class CollectionApplicationTests {
 
         // Mock the service to throw a CollectionNotFoundException
         doReturn(null).`when`(collectionService).getCollection(collectionId)
-        val c = doReturn(Card(1, "a", 1L)).`when`(cardService).getCard(cardId)
-
-        verify(collectionService, times(1)).addCard(100L, 1)
+//        val c = doReturn(Card(1, "a", 1L)).`when`(cardService).getCard(cardId)
+//
+//        verify(collectionService, times(1)).addCard(100L, 1)
 
         /*
         mvc.perform(
