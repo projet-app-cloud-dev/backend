@@ -121,8 +121,13 @@ class CollectionController(
                 responseCode = "400", description = "Bad request.", content = [Content()]
             ),
             ApiResponse(
+                responseCode = "401",
+                description = "Authentication token is missing.",
+                content = [Content()]
+            ),
+            ApiResponse(
                 responseCode = "403",
-                description = "You don't have the right to do that or missing authentication token.",
+                description = "You don't have the right to do that.",
                 content = [Content()]
             ),
             ApiResponse(
@@ -160,8 +165,13 @@ class CollectionController(
                 )]
             ),
             ApiResponse(
+                responseCode = "401",
+                description = "Authentication token is missing.",
+                content = [Content()]
+            ),
+            ApiResponse(
                 responseCode = "403",
-                description = "You don't have the right to do that or authentication token is missing.",
+                description = "You don't have the right to do that.",
                 content = [Content()]
             ),
             ApiResponse(
@@ -195,8 +205,13 @@ class CollectionController(
                 )]
             ),
             ApiResponse(
+                responseCode = "401",
+                description = "Authentication token is missing.",
+                content = [Content()]
+            ),
+            ApiResponse(
                 responseCode = "403",
-                description = "You don't have the right to do that or authentication token is missing..",
+                description = "You don't have the right to do that.",
                 content = [Content()]
             ),
             ApiResponse(
@@ -204,7 +219,7 @@ class CollectionController(
             ),
         ]
     )
-    fun setCard(@PathVariable collectionId: Long, setCard: SetCard, auth: Authentication): ResponseEntity<Void> {
+    fun setCard(@PathVariable collectionId: Long,  @RequestBody setCard: SetCard, auth: Authentication): ResponseEntity<Void> {
         val card = cardService.getOrInsertCard(setCard.cardId)
         val collection = collectionService.getCollection(collectionId) ?: throw CollectionNotFoundException()
         if (collection.userId != auth.name.toLong()) {
@@ -223,8 +238,13 @@ class CollectionController(
                 )]
             ),
             ApiResponse(
+                responseCode = "401",
+                description = "Authentication token is missing.",
+                content = [Content()]
+            ),
+            ApiResponse(
                 responseCode = "403",
-                description = "You don't have the right to do that or missing authentication token.",
+                description = "You don't have the right to do that.",
                 content = [Content()]
             ),
             ApiResponse(
