@@ -4,18 +4,22 @@ import fr.pokecloud.collection.model.AddCard
 import fr.pokecloud.collection.model.Collection
 import fr.pokecloud.collection.model.CollectionList
 import fr.pokecloud.collection.model.CollectionName
+import fr.pokecloud.collection.service.CollectionService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder
+import java.net.URI
 
 @RestController
-class CollectionController {
+class CollectionController(private val collectionService: CollectionService) {
     @GetMapping("/")
     @Operation(description = "Get a list of collections.")
     @ApiResponses(
@@ -26,11 +30,28 @@ class CollectionController {
                 )]
             ),
             ApiResponse(
+                responseCode = "400", description = "Invalid request.", content = [Content()]
+            ),
+            ApiResponse(
                 responseCode = "404", description = "No collection was found.", content = [Content()]
             ),
         ]
     )
-    fun getCollections(afterId: Long?, mine: Boolean = true): ResponseEntity<CollectionList> = TODO()
+    fun getCollections(
+        page: Int = 0, mine: Boolean = false, auth: Authentication? = null
+    ): ResponseEntity<CollectionList> {
+        val collection = if (mine) {
+            if (auth == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+            } else {
+                collectionService.getCollections(page, auth.name.toLong())
+            }
+        } else {
+            collectionService.getCollections(page, null)
+        }
+
+        return ResponseEntity.ok(collection)
+    }
 
     @PostMapping("/")
     @Operation(description = "Create a new collection.", security = [SecurityRequirement(name = "auth_token")])
@@ -38,7 +59,7 @@ class CollectionController {
         value = [
             ApiResponse(
                 responseCode = "201", description = "Collection created successfully.s", content = [Content(
-                    mediaType = "application/json", schema = Schema(implementation = CollectionList::class)
+                    mediaType = "application/json", schema = Schema(implementation = Collection::class)
                 )]
             ),
             ApiResponse(
@@ -51,9 +72,16 @@ class CollectionController {
     )
     fun createCollection(
         @RequestBody collectionName: CollectionName, auth: Authentication
-    ): ResponseEntity<Collection> = TODO()
+    ): ResponseEntity<Collection> {
+        val collection = collectionService.createCollection(collectionName.name, auth.name.toLong())
+        return ResponseEntity.created(
+            URI.create(
+                MvcUriComponentsBuilder.fromMappingName("getCollection").arg(0, collection.id).build()
+            )
+        ).body(collection)
+    }
 
-    @GetMapping("/{collectionId}")
+    @GetMapping("/{collectionId}", name = "getCollection")
     @Operation(description = "Get a collection.")
     @ApiResponses(
         value = [
@@ -67,7 +95,9 @@ class CollectionController {
             ),
         ]
     )
-    fun getCollection(@PathVariable collectionId: Long): ResponseEntity<Collection> = TODO()
+    fun getCollection(@PathVariable collectionId: Long): ResponseEntity<Collection> =
+        collectionService.getCollection(collectionId)?.let { ResponseEntity.ok(it) } ?: ResponseEntity.notFound()
+            .build()
 
     @PostMapping("/{collectionId}")
     @Operation(description = "Edit a collection.", security = [SecurityRequirement(name = "auth_token")])
@@ -82,10 +112,9 @@ class CollectionController {
                 responseCode = "400", description = "Bad request.", content = [Content()]
             ),
             ApiResponse(
-                responseCode = "401", description = "Missing authentication token.", content = [Content()]
-            ),
-            ApiResponse(
-                responseCode = "403", description = "You don't have the right to do that.", content = [Content()]
+                responseCode = "403",
+                description = "You don't have the right to do that or missing authentication token.",
+                content = [Content()]
             ),
             ApiResponse(
                 responseCode = "404", description = "Collection does not exist", content = [Content()]
@@ -94,7 +123,24 @@ class CollectionController {
     )
     fun editCollection(
         @PathVariable collectionId: Long, @RequestBody collectionName: CollectionName, auth: Authentication
-    ): ResponseEntity<Collection> = TODO()
+    ): ResponseEntity<Collection> {
+        return if (collectionName.name.isBlank()) {
+            ResponseEntity.badRequest().build()
+        } else {
+            val collection = collectionService.getCollection(collectionId)
+            return if (collection != null) {
+                val userId = auth.name.toLong()
+                if (collection.id == userId) {
+                    val col = collectionService.editCollection(collectionId, collectionName.name)
+                    ResponseEntity.ok(col)
+                } else {
+                    ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+                }
+            } else {
+                ResponseEntity.notFound().build()
+            }
+        }
+    }
 
     @DeleteMapping("/{collectionId}")
     @Operation(description = "Remove a collection.", security = [SecurityRequirement(name = "auth_token")])
@@ -105,10 +151,9 @@ class CollectionController {
                 )]
             ),
             ApiResponse(
-                responseCode = "401", description = "Missing authentication token.", content = [Content()]
-            ),
-            ApiResponse(
-                responseCode = "403", description = "You don't have the right to do that.", content = [Content()]
+                responseCode = "403",
+                description = "You don't have the right to do that or authentication token is missing.",
+                content = [Content()]
             ),
             ApiResponse(
                 responseCode = "404", description = "Collection does not exist", content = [Content()]
@@ -117,7 +162,20 @@ class CollectionController {
     )
     fun removeCollection(
         @PathVariable collectionId: Long, auth: Authentication
-    ): ResponseEntity<Void> = TODO()
+    ): ResponseEntity<Void> {
+        val collection = collectionService.getCollection(collectionId)
+        return if (collection != null) {
+            val userId = auth.name.toLong()
+            if (collection.id == userId) {
+                collectionService.removeCollection(collectionId)
+                ResponseEntity.ok().build()
+            } else {
+                ResponseEntity.status(HttpStatus.FORBIDDEN).build()
+            }
+        } else {
+            ResponseEntity.notFound().build()
+        }
+    }
 
     @PostMapping("/{collectionId}/cards")
     @Operation(description = "Add a card to a collection.", security = [SecurityRequirement(name = "auth_token")])
