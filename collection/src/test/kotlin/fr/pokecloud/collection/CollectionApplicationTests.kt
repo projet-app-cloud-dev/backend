@@ -1,11 +1,16 @@
 package fr.pokecloud.collection
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import fr.pokecloud.collection.model.*
+import fr.pokecloud.collection.model.Collection
+import fr.pokecloud.collection.model.CollectionIdAndName
+import fr.pokecloud.collection.model.CollectionList
+import fr.pokecloud.collection.model.CollectionName
 import fr.pokecloud.collection.service.CardService
 import fr.pokecloud.collection.service.CollectionService
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doNothing
+import org.mockito.Mockito.doReturn
+import org.mockito.Mockito.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -16,7 +21,10 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,7 +37,6 @@ class CollectionApplicationTests {
 
     @MockitoBean
     val cardService = mock(CardService::class.java)
-
 
     @Autowired
     lateinit var objectMapper: ObjectMapper
@@ -110,11 +117,11 @@ class CollectionApplicationTests {
     fun `test create collection without auth is unauthorized`() {
         mvc.perform(
             post("/").content(objectMapper.writeValueAsString(CollectionName("foo")))
-        ).andExpect(status().isForbidden())
+        ).andExpect(status().isUnauthorized())
     }
 
     @Test
-    @WithMockUser(username = "1", password = "pwd")
+    @WithMockJwt(value = 1L)
     fun `edit collection is ok`() {
         val collectionId = 1L
         val newCollectionName = "New Name"
@@ -127,31 +134,31 @@ class CollectionApplicationTests {
         doReturn(updatedCollection).`when`(collectionService).editCollection(collectionId, newCollectionName)
 
         mvc.perform(
-            post("/{collectionId}", collectionId).header("Authorization", "Bearer valid_token")
-                .contentType(MediaType.APPLICATION_JSON).content("""{"name": "$newCollectionName"}""")
+            post("/{collectionId}", collectionId).contentType(MediaType.APPLICATION_JSON)
+                .content("""{"name": "$newCollectionName"}""")
         ).andExpect(status().isOk).andExpect(jsonPath("$.id").value(collectionId))
             .andExpect(jsonPath("$.name").value(newCollectionName))
     }
 
     @Test
-    @WithMockUser(username = "1", password = "pwd")
+    @WithMockJwt(value = 1L)
     fun `edit collection should return bad request for invalid input`() {
         val collectionId = 1L
         val invalidCollectionName = ""
 
         mvc.perform(
-            post("/{collectionId}", collectionId).header("Authorization", "Bearer valid_token")
-                .contentType(MediaType.APPLICATION_JSON).content("""{"notname": "$invalidCollectionName"}""")
+            post("/{collectionId}", collectionId).contentType(MediaType.APPLICATION_JSON)
+                .content("""{"notname": "$invalidCollectionName"}""")
         ).andExpect(status().isBadRequest)
 
         mvc.perform(
-            post("/{collectionId}", collectionId).header("Authorization", "Bearer valid_token")
-                .contentType(MediaType.APPLICATION_JSON).content("""{"name": "$invalidCollectionName"}""")
+            post("/{collectionId}", collectionId).contentType(MediaType.APPLICATION_JSON)
+                .content("""{"name": "$invalidCollectionName"}""")
         ).andExpect(status().isBadRequest)
     }
 
     @Test
-    @WithMockUser(username = "1", password = "pwd")
+    @WithMockJwt(value = 1L)
     fun `remove is ok`() {
         val collectionId = 1L
         val newCollectionName = "New Name"
@@ -163,29 +170,30 @@ class CollectionApplicationTests {
         doNothing().`when`(collectionService).removeCollection(collectionId)
 
         mvc.perform(
-            delete("/{collectionId}", collectionId).header("Authorization", "Bearer valid_token")
+            delete("/{collectionId}", collectionId)
                 .contentType(MediaType.APPLICATION_JSON)
         ).andExpect(status().isOk)
     }
 
 
     @Test
-    fun `remove collection should return forbidden for missing token`() {
+    fun `remove collection should return unauthorized for missing token`() {
         val collectionId = 1L
         mvc.perform(
             delete("/{collectionId}", collectionId).contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isForbidden)
+        ).andExpect(status().isUnauthorized())
     }
 
 
     @Test
+    @WithMockJwt(value = 0L)
     fun `remove collection should return forbidden for unauthorized user`() {
         val collectionId = 1L
-        doReturn(Collection(collectionId, 0, "foo", listOf())).`when`(collectionService).getCollection(0)
+        doReturn(Collection(collectionId, 0, "foo", listOf())).`when`(collectionService).getCollection(collectionId)
 
         mvc.perform(
             delete("/{collectionId}", collectionId).contentType(MediaType.APPLICATION_JSON)
-        ).andExpect(status().isForbidden)
+        ).andExpect(status().isForbidden())
     }
 
     @Test
@@ -198,7 +206,7 @@ class CollectionApplicationTests {
 
         mvc.perform(
             delete("/{collectionId}", collectionId).header("Authorization", "Bearer valid_token")
-        ).andExpect(status().isNotFound)
+        ).andExpect(status().isUnauthorized)
     }
 
     @Test
