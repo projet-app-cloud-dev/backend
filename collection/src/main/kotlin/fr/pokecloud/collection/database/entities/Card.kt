@@ -1,23 +1,27 @@
 package fr.pokecloud.collection.database.entities
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.IdClass
-import jakarta.persistence.ManyToMany
-import jakarta.persistence.ManyToOne
+import jakarta.persistence.*
 import java.io.Serializable
 
 @Entity
 data class Card(
     @Id val id: Long, @Column(nullable = false) val name: String,
 
-    @ManyToMany private val collections: List<CardCollection>
+    @OneToMany(
+        mappedBy = "card", cascade = [CascadeType.ALL], orphanRemoval = true
+    ) private val collections: List<CardCollection>
 )
 
-data class CardCollectionId(
-    val card: Card, val collection: Collection
-) : Serializable
+
+class CardCollectionId() : Serializable {
+    private lateinit var card: Card
+    private lateinit var collection: Collection
+
+    constructor(card: Card, collection: Collection) : this() {
+        this.card = card
+        this.collection = collection
+    }
+}
 
 @Entity
 @IdClass(CardCollectionId::class)
