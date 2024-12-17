@@ -15,7 +15,7 @@ class CardService(
         val id: Int, val name: String
     )
 
-    private val restClient = RestClient.builder().baseUrl("http://cards").build()
+    private val restClient = RestClient.builder().baseUrl("http://cards:8080").build()
 
     fun getOrInsertCard(cardId: Long): Card {
         val card = cardRepository.findByIdOrNull(cardId)?.let {
