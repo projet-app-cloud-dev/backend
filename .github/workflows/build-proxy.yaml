@@ -5,6 +5,7 @@ on:
       - nginx/**
 jobs:
   build-proxy:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
