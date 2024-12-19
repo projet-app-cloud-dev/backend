@@ -31,6 +31,7 @@ class SecurityConfig {
             requests.requestMatchers(HttpMethod.GET, "/**").permitAll().requestMatchers(HttpMethod.POST, "/**")
                 .authenticated().requestMatchers(HttpMethod.DELETE, "/**").authenticated()
                 .requestMatchers("/swagger-ui/**").permitAll().requestMatchers("/swagger-ui.html").permitAll()
+                .requestMatchers("/api-docs/").permitAll().requestMatchers("/api-docs/**").permitAll()
                 .requestMatchers("/v3/api-docs*/**").permitAll().anyRequest().denyAll()
         }.sessionManagement { session ->
             session.sessionCreationPolicy(
