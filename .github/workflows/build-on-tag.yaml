@@ -39,7 +39,7 @@ jobs:
             echo "match=true" >> $GITHUB_OUTPUT
           fi
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         if: steps.check-tag.outputs.match == 'true'
       - name: Setup Java
         if: matrix.name != 'proxy' && steps.check-tag.outputs.match == 'true'
