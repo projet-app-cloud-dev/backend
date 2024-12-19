@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - nginx/**
+      - .github/workflows/build-proxy.yaml
 jobs:
   build-proxy:
     runs-on: ubuntu-latest
