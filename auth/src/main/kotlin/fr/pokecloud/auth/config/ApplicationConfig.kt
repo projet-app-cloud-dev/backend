@@ -44,6 +44,8 @@ class ApplicationConfig {
                 .permitAll().requestMatchers(HttpMethod.PUT, "/info").authenticated().requestMatchers("/swagger-ui/**")
                 .permitAll().requestMatchers("/swagger-ui.html").permitAll().requestMatchers("/v3/api-docs*/**")
                 .permitAll()
+                .requestMatchers("/api-docs/").permitAll()
+                .requestMatchers("/api-docs/**").permitAll()
                 .anyRequest().denyAll()
         }.csrf {
             it.disable()
