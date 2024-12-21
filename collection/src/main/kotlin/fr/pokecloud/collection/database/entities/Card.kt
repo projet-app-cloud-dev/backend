@@ -8,7 +8,7 @@ data class Card(
     @Id val id: Long, @Column(nullable = false) val name: String,
 
     @OneToMany(
-        mappedBy = "card", cascade = [CascadeType.ALL], orphanRemoval = true
+        mappedBy = "card", orphanRemoval = true
     ) private val collections: List<CardCollection>
 )
 
@@ -26,5 +26,7 @@ class CardCollectionId() : Serializable {
 @Entity
 @IdClass(CardCollectionId::class)
 data class CardCollection(
-    @ManyToOne @Id val card: Card, @ManyToOne @Id val collection: Collection, @Column(nullable = false) var count: Long
+    @ManyToOne @JoinColumn(name = "cardId", nullable = false) @Id val card: Card,
+    @ManyToOne @JoinColumn(name = "collectionId", nullable = false) @Id val collection: Collection,
+    @Column(nullable = false) var count: Long
 )
