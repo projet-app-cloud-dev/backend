@@ -8,6 +8,6 @@ data class Collection(
     @Column(nullable = false) var ownerId: Long,
     @Column(nullable = false) var name: String,
 
-    @OneToMany(mappedBy = "collection", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "collection", orphanRemoval = true, fetch = FetchType.LAZY)
     val cards: List<CardCollection>
 )

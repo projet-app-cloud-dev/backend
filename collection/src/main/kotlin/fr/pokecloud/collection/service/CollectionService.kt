@@ -12,6 +12,7 @@ import fr.pokecloud.collection.model.CollectionIdAndName
 import fr.pokecloud.collection.model.CollectionList
 import fr.pokecloud.collection.model.exceptions.CardNotFoundException
 import fr.pokecloud.collection.model.exceptions.CollectionNotFoundException
+import jakarta.transaction.Transactional
 import org.springframework.data.domain.Pageable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -23,6 +24,7 @@ class CollectionService(
     private val cardRepository: CardRepository,
     private val collectionCardRepository: CollectionCardRepository
 ) {
+    @Transactional
     fun getCollection(id: Long): Collection? = collectionRepository.findByIdOrNull(
         id
     )?.let {
@@ -30,8 +32,12 @@ class CollectionService(
             id, it.ownerId, it.name, it.cards.map { card -> CardCount(card.card.id, card.card.name, card.count) })
     }
 
-    fun getCollections(page: Int, userId: Long?): CollectionList {
-        val pageable = Pageable.ofSize(25).withPage(page)
+    @Transactional
+    fun getCollections(
+        page: Int,
+        userId: Long?, pageSize: Int = 25,
+    ): CollectionList {
+        val pageable = Pageable.ofSize(pageSize).withPage(page)
         val pageResult = if (userId != null) {
             collectionRepository.getCollectionsByOwnerId(userId, pageable)
         } else {
@@ -44,7 +50,7 @@ class CollectionService(
                     it.ownerId,
                     it.name,
                 )
-            }, pageResult.size, pageResult.totalElements
+            }, pageResult.content.size, pageResult.totalElements
         )
     }
 
@@ -57,8 +63,9 @@ class CollectionService(
         return Collection(newCollection.id!!, ownerId, collectionName, listOf())
     }
 
+    @Transactional
     fun editCollection(collectionId: Long, collectionName: String): Collection {
-        return collectionRepository.save((collectionRepository.getCollectionById(collectionId) ?: TODO()).apply {
+        return collectionRepository.save((collectionRepository.getCollectionById(collectionId) ?: throw CollectionNotFoundException()).apply {
             name = collectionName
         }).let {
             Collection(
