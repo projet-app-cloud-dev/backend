@@ -9,6 +9,12 @@ EXPOSE 8080
 
 RUN mkdir /app
 
-COPY auth/build/libs/*-boot.jar /app/spring-boot-application.jar
+ENV APP_NAME=auth
 
-ENTRYPOINT ["java", "-jar","/app/spring-boot-application.jar", "--server.port=8080"]
+COPY auth/build/libs/*-boot.jar /app/spring-boot-application.jar
+COPY docker/run.sh /app/run.sh
+RUN ["chmod", "u+x", "/app/run.sh"]
+COPY docker/applicationinsights-agent-3.6.2.jar /app/applicationinsights-agent-3.6.2.jar
+
+WORKDIR /app
+ENTRYPOINT ["./run.sh"]
