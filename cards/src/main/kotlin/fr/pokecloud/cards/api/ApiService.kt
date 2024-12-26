@@ -20,7 +20,6 @@ class ApiService(@Value("\${image.apiKey}") apiKey: String, @Value("\${image.bas
 
     private val restClient = RestClient.builder().defaultHeader("X-Api-Key", apiKey).baseUrl(baseUrl).build()
 
-
     fun getCards(nameQuery: String, page: Int): List<ApiCard> {
         val response = restClient.get().uri("/v2/cards") { uriBuilder ->
             uriBuilder.queryParam("q", "name:$nameQuery").queryParam("page", page + 1).queryParam("pageSize", 50)
