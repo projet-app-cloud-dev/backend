@@ -4,7 +4,6 @@ import fr.pokecloud.auth.dto.AccountInformations
 import fr.pokecloud.auth.dto.LoginResponse
 import fr.pokecloud.auth.dto.NewAccountInformations
 import fr.pokecloud.auth.dto.UsernameAndPassword
-import fr.pokecloud.auth.service.PasswordService
 import fr.pokecloud.auth.service.TokenService
 import fr.pokecloud.auth.service.UserService
 import io.swagger.v3.oas.annotations.Operation
@@ -15,12 +14,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
 @RestController
 class AuthController(
     private val userService: UserService,
-    private val passwordService: PasswordService,
+    private val passwordEncoder: PasswordEncoder,
     private val tokenService: TokenService
 ) {
     @PostMapping("/login")
@@ -40,7 +40,7 @@ class AuthController(
         val user = userService.getUserByUsername(loginInformations.username)
             ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 
-        if (!passwordService.checkPassword(loginInformations.password, user.encodedPassword)) {
+        if (!passwordEncoder.matches(loginInformations.password, user.encodedPassword)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
         }
 
@@ -112,7 +112,7 @@ class AuthController(
             userService.getUserById(auth.name.toLong()) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
 
         if (editInformations.password != null) {
-            if (!passwordService.checkPassword(editInformations.password.oldPassword, user.encodedPassword)) {
+            if (!passwordEncoder.matches(editInformations.password.oldPassword, user.encodedPassword)) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
             }
         }

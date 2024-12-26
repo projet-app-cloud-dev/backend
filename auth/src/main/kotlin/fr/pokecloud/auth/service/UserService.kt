@@ -5,13 +5,14 @@ import fr.pokecloud.auth.model.User
 import fr.pokecloud.auth.model.exception.UserNotFoundException
 import fr.pokecloud.auth.model.exception.UsernameTakenException
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
-    private val passwordService: PasswordService,
+    private val passwordEncoder: PasswordEncoder,
 ) {
     fun getUserById(userId: Long): User? = userRepository.findUserById(userId)?.let {
         User(it.id!!, it.username, it.encodedPassword)
@@ -29,7 +30,7 @@ class UserService(
                     user.username = username
                 }
                 if (!password.isNullOrBlank()) {
-                    user.encodedPassword = passwordService.encodePassword(password)
+                    user.encodedPassword = passwordEncoder.encode(password)
                 }
             } ?: throw UserNotFoundException()
             userRepository.save(newUser)
@@ -43,7 +44,7 @@ class UserService(
         return try {
             userRepository.save(
                 fr.pokecloud.auth.database.entities.User(
-                    null, username, passwordService.encodePassword(password)
+                    null, username, passwordEncoder.encode(password)
                 )
             ).let {
                 User(it.id!!, it.username, it.encodedPassword)

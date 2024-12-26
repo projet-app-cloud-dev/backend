@@ -8,7 +8,6 @@ import fr.pokecloud.auth.dto.NewPassword
 import fr.pokecloud.auth.dto.UsernameAndPassword
 import fr.pokecloud.auth.model.User
 import fr.pokecloud.auth.model.exception.UsernameTakenException
-import fr.pokecloud.auth.service.PasswordService
 import fr.pokecloud.auth.service.UserService
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
@@ -16,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -32,7 +32,7 @@ class AuthApplicationTests {
     lateinit var objectMapper: ObjectMapper
 
     @MockitoBean
-    val passwordService = mock(PasswordService::class.java)
+    val passwordEncoder = mock(PasswordEncoder::class.java)
 
     @MockitoBean
     val userService = mock(UserService::class.java)
@@ -47,7 +47,7 @@ class AuthApplicationTests {
         val user = User(0, username, password)
 
         doReturn(user).`when`(userService).getUserByUsername(username)
-        doReturn(true).`when`(passwordService).checkPassword(password, password)
+        doReturn(true).`when`(passwordEncoder).matches(password, password)
 
         mvc.perform(
             post("/login").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(loginDTO))
@@ -78,7 +78,7 @@ class AuthApplicationTests {
         val user = User(0, username, password)
 
         doReturn(user).`when`(userService).getUserByUsername(username)
-        doReturn(false).`when`(passwordService).checkPassword(password, password)
+        doReturn(false).`when`(passwordEncoder).matches(password, password)
 
         mvc.perform(
             post("/login").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(loginDTO))
@@ -146,7 +146,7 @@ class AuthApplicationTests {
         val user = User(userId, username, oldPassword)
 
         doReturn(user).`when`(userService).getUserById(userId)
-        doReturn(true).`when`(passwordService).checkPassword(oldPassword, oldPassword)
+        doReturn(true).`when`(passwordEncoder).matches(oldPassword, oldPassword)
         doNothing().`when`(userService).editUser(userId, username, newPassword)
         mvc.perform(
             put("/info").contentType(MediaType.APPLICATION_JSON).with(
@@ -185,7 +185,7 @@ class AuthApplicationTests {
         val user = User(userId, username, oldPassword)
 
         doReturn(user).`when`(userService).getUserById(userId)
-        doReturn(true).`when`(passwordService).checkPassword(oldPassword, oldPassword)
+        doReturn(true).`when`(passwordEncoder).matches(oldPassword, oldPassword)
         doNothing().`when`(userService).editUser(userId, null, newPassword)
         mvc.perform(
             put("/info").contentType(MediaType.APPLICATION_JSON).with(
@@ -228,7 +228,7 @@ class AuthApplicationTests {
         val user = User(userId, username, oldPassword)
 
         doReturn(user).`when`(userService).getUserById(userId)
-        doReturn(false).`when`(passwordService).checkPassword(oldPassword, oldPassword)
+        doReturn(false).`when`(passwordEncoder).matches(oldPassword, oldPassword)
         mvc.perform(
             put("/info").contentType(MediaType.APPLICATION_JSON).with(
                 jwt().jwt { it.tokenValue("token").header("alg", "none").subject("1") })
@@ -245,7 +245,7 @@ class AuthApplicationTests {
         val newInformationsDto = NewAccountInformations(username, NewPassword(oldPassword, newPassword))
         val user = User(userId, "old", oldPassword)
         doReturn(user).`when`(userService).getUserById(userId)
-        doReturn(true).`when`(passwordService).checkPassword(oldPassword, oldPassword)
+        doReturn(true).`when`(passwordEncoder).matches(oldPassword, oldPassword)
         doThrow(UsernameTakenException()).`when`(userService).editUser(userId, username, newPassword)
         mvc.perform(
             put("/info").contentType(MediaType.APPLICATION_JSON).with(
