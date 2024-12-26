@@ -41,7 +41,9 @@ class ApplicationConfig {
         http.authorizeHttpRequests { authorizeRequests ->
             authorizeRequests.requestMatchers(HttpMethod.POST, "/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/signup").permitAll().requestMatchers(HttpMethod.GET, "/info/**")
-                .permitAll().requestMatchers(HttpMethod.PUT, "/info").authenticated().requestMatchers("/swagger-ui/**")
+                .permitAll().requestMatchers(HttpMethod.PUT, "/info")
+                .authenticated()
+                .requestMatchers("/swagger-ui/**")
                 .permitAll().requestMatchers("/swagger-ui.html").permitAll().requestMatchers("/v3/api-docs*/**")
                 .permitAll()
                 .requestMatchers("/api-docs/").permitAll()

@@ -1,6 +1,9 @@
 package fr.pokecloud.auth.controller
 
-import fr.pokecloud.auth.dto.*
+import fr.pokecloud.auth.dto.AccountInformations
+import fr.pokecloud.auth.dto.LoginResponse
+import fr.pokecloud.auth.dto.NewAccountInformations
+import fr.pokecloud.auth.dto.UsernameAndPassword
 import fr.pokecloud.auth.service.PasswordService
 import fr.pokecloud.auth.service.TokenService
 import fr.pokecloud.auth.service.UserService
@@ -42,8 +45,7 @@ class AuthController(
         }
 
         val token = tokenService.createToken(user)
-        return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer $token")
-            .body(LoginResponse(token))
+        return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer $token").body(LoginResponse(token))
     }
 
 
@@ -64,8 +66,7 @@ class AuthController(
         val user = userService.createUser(signupInformations.username, signupInformations.password)
 
         val token = tokenService.createToken(user)
-        return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer $token")
-            .body(LoginResponse(token))
+        return ResponseEntity.status(HttpStatus.OK).header("Authorization", "Bearer $token").body(LoginResponse(token))
     }
 
     @GetMapping("/info/{userId}")
@@ -83,23 +84,40 @@ class AuthController(
         ]
     )
     fun info(@PathVariable("userId") userId: Long): ResponseEntity<AccountInformations> {
-        val user = userService.getUserById(userId)
-            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
+        val user = userService.getUserById(userId) ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).build()
         return ResponseEntity(AccountInformations(user.username), HttpStatus.OK)
     }
 
-    @PutMapping("/info/")
+    @PutMapping("/info")
     @Operation(description = "Update user informations.")
     @ApiResponses(
         value = [ApiResponse(
             responseCode = "200", description = "Edited successfully.", content = [Content()]
         ), ApiResponse(
             responseCode = "400",
-            description = "Invalid old password or password are not the same.",
+            description = "Missing username or password, or old password is not valid.",
             content = [Content()]
         ), ApiResponse(
             responseCode = "401", description = "Access token is missing or invalid.", content = [Content()]
+        ), ApiResponse(
+            responseCode = "409", description = "Username already exist.", content = [Content()]
         )]
     )
-    fun edit(@RequestBody editInformations: NewAccountInformations, auth: Authentication): ResponseEntity<Void> = TODO()
+    fun edit(@RequestBody editInformations: NewAccountInformations, auth: Authentication): ResponseEntity<Void> {
+        if (editInformations.username == null && editInformations.password == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+        }
+
+        val user =
+            userService.getUserById(auth.name.toLong()) ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        if (editInformations.password != null) {
+            if (!passwordService.checkPassword(editInformations.password.oldPassword, user.encodedPassword)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build()
+            }
+        }
+
+        userService.editUser(auth.name.toLong(), editInformations.username, editInformations.password?.newPassword)
+        return ResponseEntity.ok().build()
+    }
 }
