@@ -1,6 +1,9 @@
 package fr.pokecloud.cards
 
 import fr.pokecloud.cards.api.ApiService
+import fr.pokecloud.cards.api.model.ApiCard
+import fr.pokecloud.cards.api.model.ApiImage
+import fr.pokecloud.cards.api.model.exception.ApiException
 import fr.pokecloud.cards.database.Card
 import fr.pokecloud.cards.database.CardRepository
 import org.junit.jupiter.api.BeforeEach
@@ -60,7 +63,7 @@ class CardsApplicationTests {
     @Test
     fun `test search same page with same name return same value`() {
         val pkmList = List(10) {
-            ApiService.ApiCard("e-$it", "eevee-$it", ApiService.Images("https://example.org"))
+            ApiCard("e-$it", "eevee-$it", ApiImage("https://example.org"))
         }
 
         doReturn(pkmList).`when`(apiService).getCards("eevee", 0)
@@ -73,5 +76,9 @@ class CardsApplicationTests {
         verify(apiService, times(0)).getCards(anyString(), not(ArgumentMatchers.eq(0)))
     }
 
-    // TODO: test api error return 500
+    @Test
+    fun `test search when api throw error returns internal server error`() {
+        doThrow(ApiException("Api error")).`when`(apiService).getCards("eevee", 0)
+        mvc.perform(MockMvcRequestBuilders.get("/").param("query", "eevee")).andExpect(status().isInternalServerError())
+    }
 }
