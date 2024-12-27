@@ -1,5 +1,5 @@
 package fr.pokecloud.cards.api.model
 
-class ApiImage(
+data class ApiImage(
     val large: String,
 )

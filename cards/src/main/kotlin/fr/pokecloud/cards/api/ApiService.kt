@@ -8,8 +8,12 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
 @Service
-class ApiService(@Value("\${image.apiKey}") apiKey: String, @Value("\${image.baseUrl}") baseUrl: String) {
-    private val restClient = RestClient.builder().defaultHeader("X-Api-Key", apiKey).baseUrl(baseUrl).build()
+class ApiService(
+    @Value("\${image.apiKey}") apiKey: String,
+    @Value("\${image.baseUrl}") baseUrl: String,
+    restClientBuilder: RestClient.Builder
+) {
+    private val restClient = restClientBuilder.defaultHeader("X-Api-Key", apiKey).baseUrl(baseUrl).build()
 
     @Throws(ApiException::class)
     fun getCards(nameQuery: String, page: Int): List<ApiCard> {
