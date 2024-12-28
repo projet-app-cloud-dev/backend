@@ -23,7 +23,6 @@ services:
       - db
     environment:
       DB_HOST_PORT: "db:5432"
-      API_KEY: ${API_KEY}
   collection:
     build:
       context: .
