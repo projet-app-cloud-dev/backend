@@ -186,7 +186,7 @@ class CollectionApplicationTests {
 
 
     @Test
-    @WithMockJwt(value = 0L)
+    @WithMockJwt(value = 1L)
     fun `remove collection should return forbidden for unauthorized user`() {
         val collectionId = 1L
         doReturn(Collection(collectionId, 0, "foo", listOf())).`when`(collectionService).getCollection(collectionId)

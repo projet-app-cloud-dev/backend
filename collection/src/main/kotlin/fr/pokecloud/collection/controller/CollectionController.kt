@@ -16,13 +16,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
-import org.springframework.web.bind.annotation.CrossOrigin
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder
 import java.net.URI
 
@@ -123,14 +117,10 @@ class CollectionController(
                 responseCode = "400", description = "Bad request.", content = [Content()]
             ),
             ApiResponse(
-                responseCode = "401",
-                description = "Authentication token is missing.",
-                content = [Content()]
+                responseCode = "401", description = "Authentication token is missing.", content = [Content()]
             ),
             ApiResponse(
-                responseCode = "403",
-                description = "You don't have the right to do that.",
-                content = [Content()]
+                responseCode = "403", description = "You don't have the right to do that.", content = [Content()]
             ),
             ApiResponse(
                 responseCode = "404", description = "Collection does not exist", content = [Content()]
@@ -167,14 +157,10 @@ class CollectionController(
                 )]
             ),
             ApiResponse(
-                responseCode = "401",
-                description = "Authentication token is missing.",
-                content = [Content()]
+                responseCode = "401", description = "Authentication token is missing.", content = [Content()]
             ),
             ApiResponse(
-                responseCode = "403",
-                description = "You don't have the right to do that.",
-                content = [Content()]
+                responseCode = "403", description = "You don't have the right to do that.", content = [Content()]
             ),
             ApiResponse(
                 responseCode = "404", description = "Collection does not exist", content = [Content()]
@@ -187,7 +173,7 @@ class CollectionController(
         val collection = collectionService.getCollection(collectionId)
         return if (collection != null) {
             val userId = auth.name.toLong()
-            if (collection.id == userId) {
+            if (collection.userId == userId) {
                 collectionService.removeCollection(collectionId)
                 ResponseEntity.ok().build()
             } else {
@@ -207,21 +193,21 @@ class CollectionController(
                 )]
             ),
             ApiResponse(
-                responseCode = "401",
-                description = "Authentication token is missing.",
-                content = [Content()]
+                responseCode = "401", description = "Authentication token is missing.", content = [Content()]
             ),
             ApiResponse(
-                responseCode = "403",
-                description = "You don't have the right to do that.",
-                content = [Content()]
+                responseCode = "403", description = "You don't have the right to do that.", content = [Content()]
             ),
             ApiResponse(
                 responseCode = "404", description = "Collection or card does not exist", content = [Content()]
             ),
         ]
     )
-    fun setCard(@PathVariable collectionId: Long,  @RequestBody setCard: SetCard, auth: Authentication): ResponseEntity<Void> {
+    fun setCard(
+        @PathVariable collectionId: Long,
+        @RequestBody setCard: SetCard,
+        auth: Authentication
+    ): ResponseEntity<Void> {
         val card = cardService.getOrInsertCard(setCard.cardId)
         val collection = collectionService.getCollection(collectionId) ?: throw CollectionNotFoundException()
         if (collection.userId != auth.name.toLong()) {
@@ -240,14 +226,10 @@ class CollectionController(
                 )]
             ),
             ApiResponse(
-                responseCode = "401",
-                description = "Authentication token is missing.",
-                content = [Content()]
+                responseCode = "401", description = "Authentication token is missing.", content = [Content()]
             ),
             ApiResponse(
-                responseCode = "403",
-                description = "You don't have the right to do that.",
-                content = [Content()]
+                responseCode = "403", description = "You don't have the right to do that.", content = [Content()]
             ),
             ApiResponse(
                 responseCode = "404", description = "Collection or card does not exist", content = [Content()]
