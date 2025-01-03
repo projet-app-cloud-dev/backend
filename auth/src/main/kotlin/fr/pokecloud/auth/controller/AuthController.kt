@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 
 @RestController
+@CrossOrigin
 class AuthController(
     private val userService: UserService,
     private val passwordEncoder: PasswordEncoder,
