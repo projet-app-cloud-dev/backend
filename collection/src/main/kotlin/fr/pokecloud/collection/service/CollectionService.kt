@@ -47,7 +47,7 @@ class CollectionService(
         return CollectionList(
             pageResult.content.map {
                 CollectionIdAndName(
-                    it.ownerId,
+                    it.id!!,
                     it.name,
                 )
             }, pageResult.content.size, pageResult.totalElements
