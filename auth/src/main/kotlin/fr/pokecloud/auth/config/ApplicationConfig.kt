@@ -7,6 +7,7 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.OctetSequenceKey
 import com.nimbusds.jose.jwk.source.JWKSource
 import com.nimbusds.jose.proc.SecurityContext
+import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
@@ -45,7 +46,8 @@ class ApplicationConfig {
                 .permitAll().requestMatchers(HttpMethod.PUT, "/info").authenticated().requestMatchers("/swagger-ui/**")
                 .permitAll().requestMatchers("/swagger-ui.html").permitAll().requestMatchers("/v3/api-docs*/**")
                 .permitAll().requestMatchers("/api-docs/").permitAll().requestMatchers("/api-docs/**").permitAll()
-                .anyRequest().denyAll()
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll().anyRequest().denyAll()
+
         }.csrf {
             it.disable()
         }.sessionManagement { session ->
@@ -57,13 +59,12 @@ class ApplicationConfig {
                 Customizer.withDefaults()
             )
         }.exceptionHandling { exceptions: ExceptionHandlingConfigurer<HttpSecurity?> ->
-            exceptions.authenticationEntryPoint(BearerTokenAuthenticationEntryPoint())
-                .accessDeniedHandler(BearerTokenAccessDeniedHandler())
-        }
+                exceptions.authenticationEntryPoint(BearerTokenAuthenticationEntryPoint())
+                    .accessDeniedHandler(BearerTokenAccessDeniedHandler())
+            }.cors(Customizer.withDefaults())
 
         return http.build()
     }
-
 
     @Bean
     fun jwtDecoder(jwk: JWK): JwtDecoder {

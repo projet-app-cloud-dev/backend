@@ -3,6 +3,7 @@ package fr.pokecloud.collection.config
 import com.nimbusds.jose.JWSAlgorithm
 import com.nimbusds.jose.jwk.JWK
 import com.nimbusds.jose.jwk.OctetSequenceKey
+import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment
@@ -33,7 +34,9 @@ class SecurityConfig {
                 .authenticated().requestMatchers(HttpMethod.DELETE, "/**").authenticated()
                 .requestMatchers("/swagger-ui/**").permitAll().requestMatchers("/swagger-ui.html").permitAll()
                 .requestMatchers("/api-docs/").permitAll().requestMatchers("/api-docs/**").permitAll()
-                .requestMatchers("/v3/api-docs*/**").permitAll().anyRequest().denyAll()
+                .requestMatchers("/v3/api-docs*/**").permitAll()
+                .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                .anyRequest().denyAll()
         }.sessionManagement { session ->
             session.sessionCreationPolicy(
                 SessionCreationPolicy.STATELESS
@@ -45,7 +48,7 @@ class SecurityConfig {
         }.exceptionHandling { exceptions: ExceptionHandlingConfigurer<HttpSecurity?> ->
             exceptions.authenticationEntryPoint(BearerTokenAuthenticationEntryPoint())
                 .accessDeniedHandler(BearerTokenAccessDeniedHandler())
-        }
+        }.cors(Customizer.withDefaults())
         return http.build()
     }
 
